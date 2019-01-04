@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace FakeUIMS
 {
@@ -34,7 +29,7 @@ namespace FakeUIMS
             answer = HttpContext.Request.Cookies.TryGetValue(nameof(loginPage), out loginPage) && answer;
             answer = HttpContext.Request.Cookies.TryGetValue(nameof(pwdStrength), out pwdStrength) && answer;
             answer = answer && alu == HttpContext.Session.GetString("startPersonAlu");
-            if (!answer) throw new ArgumentException();
+            if (!answer) throw new WebException("Session timed out.", WebExceptionStatus.Timeout);
 
             var handler = new HttpClientHandler
             {

@@ -96,6 +96,7 @@ namespace FakeUIMS.Controllers
                 var httpRequest = new HttpRequestMessage(HttpMethod.Post, getCurrentUserInfo);
                 var httpContent = new StringContent("{}", Encoding.UTF8);
                 httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                httpRequest.Content = httpContent;
                 var result = await client.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead);
                 var body = await result.Content.ReadAsStringAsync();
                 return Content(body, "application/json");
