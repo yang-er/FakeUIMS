@@ -5,19 +5,24 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace FakeUIMS
 {
     public class Program
     {
+        public static Random Random { get; } = new Random();
+
         public static void Main(string[] args)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             CreateWebHostBuilder(args).Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseUrls("http://*:5000")
                 .UseStartup<Startup>();
 
         internal const string ServerBaseUrl = "https://10.60.65.8/";

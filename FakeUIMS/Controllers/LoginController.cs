@@ -2,13 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace FakeUIMS.Controllers
 {
@@ -52,74 +46,43 @@ namespace FakeUIMS.Controllers
 
         [HttpPost]
         [Route(securityCheckUrl)]
-        public Task<IActionResult> SecurityCheck(string j_username, string j_password, string mousePath)
+        public IActionResult SecurityCheck(string j_username, string j_password, string mousePath)
         {
-            return Program.ConnectUIMS(HttpContext, false, async (client, cc) =>
+            if ($"UIMS{j_username}233333".ToMD5(Encoding.UTF8) != j_password)
             {
-                var formUrlEncodedContent = new Dictionary<string, string>
-                {
-                    { nameof(j_username), j_username },
-                    { nameof(j_password), j_password },
-                    { nameof(mousePath), mousePath }
-                };
-
-                await client.GetAsync("ntms/", HttpCompletionOption.ResponseHeadersRead);
-                var JSESSIONID = cc.GetAll().Find(c => c.Name == "JSESSIONID");
-
-                HttpContext.Response.Cookies.Append(JSESSIONID.Name, JSESSIONID.Value, new CookieOptions
-                {
-                    Expires = DateTime.Now.AddMinutes(15),
-                    Path = "/ntms/",
-                });
-
-                var httpRequest = new HttpRequestMessage(HttpMethod.Post, securityCheckUrl);
-                httpRequest.Content = new FormUrlEncodedContent(formUrlEncodedContent);
-                httpRequest.Headers.Referrer = new Uri(Program.ServerBaseUrl + "ntms/userLogin.jsp?reason=nologin");
-                var result = await client.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead);
-
-                if (result.Headers.Location is null)
-                {
-                    Logger.LogCritical("Error Request! " + result.ToString());
-                    return new BadRequestResult();
-                }
-
-                return Redirect(result.Headers.Location.OriginalString.Replace(Program.ServerBaseUrl + "ntms/", ""));
-            });
+                return Redirect("error/dispatch.jsp?reason=loginError");
+            }
+            else
+            {
+                return Redirect("index.do");
+            }
         }
 
         [HttpPost]
         [Route(getCurrentUserInfo)]
-        public Task<IActionResult> GetCurrentUserInfo()
+        public IActionResult GetCurrentUserInfo()
         {
-            return Program.ConnectUIMS(HttpContext, true, async (client, cc) =>
+            if (Cookies.TryGetValue("alu", out var alu))
             {
-                var httpRequest = new HttpRequestMessage(HttpMethod.Post, getCurrentUserInfo);
-                var httpContent = new StringContent("{}", Encoding.UTF8);
-                httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                httpRequest.Content = httpContent;
-                var result = await client.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead);
-                var body = await result.Content.ReadAsStringAsync();
-                return Content(body, "application/json");
-            });
+                return Json(new LoginValue(alu));
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         [HttpGet]
         [Route(userLogin)]
-        public Task<IActionResult> UserLogin(string reason)
+        public IActionResult UserLogin(string reason)
         {
             if (reason == "loginError")
             {
-                return Program.ConnectUIMS(HttpContext, true, async (client, cc) =>
-                {
-                    var httpRequest = new HttpRequestMessage(HttpMethod.Get, userLogin + "?reason=loginError");
-                    var result = await client.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead);
-                    var body = await result.Content.ReadAsStringAsync();
-                    return Content(Regex.Match(body, errorMessagePattern).Groups[0].Value);
-                });
+                return Content(errorMessagePattern.Replace("(\\S+)", "这是一个测试网站。"), "text/html");
             }
             else
             {
-                return Task.FromResult<IActionResult>(Content("I really really really really really dislike you"));
+                return Content("I really really really really really dislike you", "text/html");
             }
         }
 
