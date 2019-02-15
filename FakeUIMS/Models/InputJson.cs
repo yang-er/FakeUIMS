@@ -126,7 +126,7 @@ namespace FakeUIMS.Models
             message = new MessageMain(f);
             receiver = new MessageReceiver(f);
             msgInboxId = Program.Random.Next(9600000, 9876543).ToString();
-            hasReaded = Program.Random.Next(0, 1) > 0 ? "N" : "Y";
+            hasReaded = Program.Random.Next(0, 10) > 5 ? "N" : "Y";
             activeStatus = "103";
         }
 
@@ -135,7 +135,7 @@ namespace FakeUIMS.Models
         public MessageReceiver receiver { get; set; }
         public object dateRead { get; set; }
         public string activeStatus { get; set; }
-        public string hasReaded { get; set; } = Program.Random.Next(0, 1) > 0 ? "N" : "Y";
+        public string hasReaded { get; set; }
         public object dateReceive { get; set; }
 
         public class MessageReceiver
